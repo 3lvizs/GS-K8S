@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: api-pagamentos-config
+  namespace: unifiapay # Define que este ConfigMap pertence ao namespace 'unifiapay'
+data:
+  # Chave usada pelo 'api-pagamentos' para validar o saldo
+  RESERVA_BANCARIA_SALDO: "100000.00"

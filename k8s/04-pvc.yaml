@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: livro-razao-pvc
+  namespace: unifiapay # No mesmo namespace dos outros recursos
+spec:
+  # Modo de Acesso: ReadWriteOnce (RWO)
+  # Significa que o volume pode ser montado como leitura/escrita por um único Node.
+  # Para o Minikube (que é um Node só), isso é perfeito e permite que
+  # o 'api-pagamentos' e o 'auditoria-service' acessem o mesmo volume.
+  accessModes:
+    - ReadWriteOnce
+  
+  # Recursos: Quanto espaço estamos solicitando.
+  resources:
+    requests:
+      storage: 1Gi # 1 Gibibyte, conforme solicitado.

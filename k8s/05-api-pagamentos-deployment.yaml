@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-pagamentos-deployment
+  namespace: unifiapay
+  labels:
+    app: api-pagamentos
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: api-pagamentos
+  template:
+    metadata:
+      labels:
+        app: api-pagamentos
+    spec:
+      # --- BLOCO ADICIONADO ---
+      # Define o grupo (fsGroup) para o volume compartilhado
+      securityContext:
+        fsGroup: 2000
+      # --- FIM DO BLOCO ---
+      
+      serviceAccountName: unifiapay-sa 
+      containers:
+      - name: api-pagamentos-container
+        image: elvizs/api-pagamentos:v1.RM557866
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8081
+
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+          requests:
+            memory: "64Mi"
+            cpu: "250m"
+
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1001
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - "ALL"
+        
+        env:
+        - name: RESERVA_BANCARIA_SALDO
+          valueFrom:
+            configMapKeyRef:
+              name: api-pagamentos-config
+              key: RESERVA_BANCARIA_SALDO
+              
+        volumeMounts:
+        - name: livro-razao-volume
+          mountPath: /var/logs/api
+          
+      volumes:
+      - name: livro-razao-volume
+        persistentVolumeClaim:
+          claimName: livro-razao-pvc

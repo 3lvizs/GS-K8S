@@ -1,0 +1,40 @@
+version: '3.8' # Você pode deletar esta linha se quiser (remove o warning)
+
+services:
+  api-pagamentos:
+    build: ./api-pagamentos
+    image: elvizs/api-pagamentos:local-test
+    container_name: api-pagamentos
+    env_file:
+      - ./docker/.env
+    ports:
+      - "8081:8081"
+    volumes:
+      - livro-razao-local:/var/logs/api
+    networks:
+      - unifiap_net
+
+  auditoria-service:
+    build: ./auditoria-service
+    image: elvizs/auditoria-service:local-test
+    container_name: auditoria-service
+    env_file:
+      - ./docker/.env
+    volumes:
+      - livro-razao-local:/var/logs/api
+    networks:
+      - unifiap_net
+    
+    # ADICIONE ESTA LINHA:
+    # Ela força o container a ficar vivo para o teste de ping.
+    command: tail -f /dev/null
+
+volumes:
+  livro-razao-local:
+
+networks:
+  unifiap_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.25.0.0/24

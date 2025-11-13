@@ -1,0 +1,15 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: unifiapay
+spec:
+  # Aplica esta política a TODOS os Pods no namespace
+  podSelector: {} 
+  
+  # Bloqueia todo o tráfego de entrada (Ingress)
+  policyTypes:
+  - Ingress
+  
+  # Bloqueia todo o tráfego de saída (Egress)
+  - Egress

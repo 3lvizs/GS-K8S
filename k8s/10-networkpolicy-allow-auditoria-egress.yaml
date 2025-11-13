@@ -1,0 +1,37 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-egress-from-auditoria
+  namespace: unifiapay
+spec:
+  # Aplica esta regra apenas aos Pods criados pelo CronJob
+  # (Assumindo que o CronJob adicione esta label aos seus Pods)
+  podSelector:
+    matchLabels:
+      app: auditoria-service # Precisamos garantir que o CronJob adicione esta label
+  
+  # Define que esta é uma regra de saída (Egress)
+  policyTypes:
+  - Egress
+  
+  egress:
+  # 1. Permite a saída para o 'banco'
+  - to:
+    - podSelector:
+        matchLabels:
+          app: banco # Permite falar com Pods com a label 'app: banco'
+    # Você pode especificar a porta do banco aqui se souber, ex:
+    # ports:
+    # - protocol: TCP
+    #   port: 5432 
+
+  # 2. Permite a saída para o DNS (kube-dns)
+  # (MUITO IMPORTANTE: Sem isso, o Pod não consegue resolver nomes
+  #  de outros serviços, como 'banco' ou serviços externos)
+  - to:
+    - namespaceSelector: {} # Permite falar com todos os namespaces...
+    ports:
+    - protocol: UDP
+      port: 53  # ...na porta 53 (DNS)
+    - protocol: TCP
+      port: 53  # ...na porta 53 (DNS)

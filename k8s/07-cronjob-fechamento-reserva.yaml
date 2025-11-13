@@ -1,0 +1,56 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: cronjob-fechamento-reserva
+  namespace: unifiapay
+spec:
+  schedule: "0 */6 * * *"
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: auditoria-service 
+        spec:
+          # --- BLOCO ADICIONADO ---
+          # Define o MESMO grupo (fsGroup) para o volume
+          securityContext:
+            fsGroup: 2000
+          # --- FIM DO BLOCO ---
+          
+          serviceAccountName: unifiapay-sa
+          containers:
+          - name: auditoria-service-container
+            image: elvizs/auditoria-service:v1.RM557866
+            imagePullPolicy: Always
+
+            resources:
+              limits:
+                memory: "128Mi"
+                cpu: "500m"
+              requests:
+                memory: "64Mi"
+                cpu: "250m"
+
+            securityContext:
+              runAsNonRoot: true
+              runAsUser: 1002
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                  - "ALL"
+
+            env:
+            - name: FAKE_PIX_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: auditoria-service-secret
+                  key: FAKE_PIX_KEY
+            volumeMounts:
+            - name: livro-razao-volume
+              mountPath: /var/logs/api
+          volumes:
+          - name: livro-razao-volume
+            persistentVolumeClaim:
+              claimName: livro-razao-pvc
+          restartPolicy: OnFailure
