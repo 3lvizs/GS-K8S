@@ -82,6 +82,7 @@ Abaixo estão todos os comandos executados para gerar as evidências da prova.
 
     ```bash
     docker scout cves elvizs/api-pagamentos:v1.RM557866
+    docker scout cves elvizs/auditoria-service:v1.RM557866
     ```
     **Evidência:**
     ![Print do Scout 1](./images/scout1.png)
@@ -109,7 +110,7 @@ Testes locais usando `docker-compose` para validar a rede e a leitura de variáv
     ```bash
     docker network ls
     # O nome pode variar; verifique com "docker network ls"
-    docker network inspect GSK8S_unifiap_net
+    docker network inspect gs-k8s_unifiap_net
     ```
     **Evidência:**
     ![Print do Network LS](./images/network%20ls.png)

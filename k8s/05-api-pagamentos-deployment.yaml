@@ -15,12 +15,25 @@ spec:
       labels:
         app: api-pagamentos
     spec:
-      # --- BLOCO ADICIONADO ---
-      # Define o grupo (fsGroup) para o volume compartilhado
       securityContext:
         fsGroup: 2000
-      # --- FIM DO BLOCO ---
       
+      # --- INÍCIO DO BLOCO NOVO ---
+      initContainers:
+      - name: fix-volume-permissions
+        image: alpine:3.18
+        # Este container roda como root (UID 0)
+        securityContext:
+          runAsUser: 0 
+        command: ["/bin/sh", "-c"]
+        args:
+          # Garante que a pasta exista E pertence ao Usuário 1001
+          - "mkdir -p /var/logs/api && chown -R 1001:2000 /var/logs/api"
+        volumeMounts:
+        - name: livro-razao-volume
+          mountPath: /var/logs/api
+      # --- FIM DO BLOCO NOVO ---
+
       serviceAccountName: unifiapay-sa 
       containers:
       - name: api-pagamentos-container
@@ -28,7 +41,6 @@ spec:
         imagePullPolicy: Always
         ports:
         - containerPort: 8081
-
         resources:
           limits:
             memory: "128Mi"
@@ -36,22 +48,19 @@ spec:
           requests:
             memory: "64Mi"
             cpu: "250m"
-
         securityContext:
           runAsNonRoot: true
-          runAsUser: 1001
+          runAsUser: 1001 # Este container roda como 1001
           allowPrivilegeEscalation: false
           capabilities:
             drop:
               - "ALL"
-        
         env:
         - name: RESERVA_BANCARIA_SALDO
           valueFrom:
             configMapKeyRef:
               name: api-pagamentos-config
               key: RESERVA_BANCARIA_SALDO
-              
         volumeMounts:
         - name: livro-razao-volume
           mountPath: /var/logs/api

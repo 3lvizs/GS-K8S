@@ -12,18 +12,29 @@ spec:
           labels:
             app: auditoria-service 
         spec:
-          # --- BLOCO ADICIONADO ---
-          # Define o MESMO grupo (fsGroup) para o volume
           securityContext:
             fsGroup: 2000
-          # --- FIM DO BLOCO ---
           
+          # --- INÍCIO DO BLOCO NOVO ---
+          initContainers:
+          - name: fix-volume-permissions
+            image: alpine:3.18
+            securityContext:
+              runAsUser: 0
+            command: ["/bin/sh", "-c"]
+            args:
+              # Garante que a pasta exista E pertence ao Usuário 1002
+              - "mkdir -p /var/logs/api && chown -R 1002:2000 /var/logs/api"
+            volumeMounts:
+            - name: livro-razao-volume
+              mountPath: /var/logs/api
+          # --- FIM DO BLOCO NOVO ---
+
           serviceAccountName: unifiapay-sa
           containers:
           - name: auditoria-service-container
             image: elvizs/auditoria-service:v1.RM557866
             imagePullPolicy: Always
-
             resources:
               limits:
                 memory: "128Mi"
@@ -31,15 +42,13 @@ spec:
               requests:
                 memory: "64Mi"
                 cpu: "250m"
-
             securityContext:
               runAsNonRoot: true
-              runAsUser: 1002
+              runAsUser: 1002 # Este container roda como 1002
               allowPrivilegeEscalation: false
               capabilities:
                 drop:
                   - "ALL"
-
             env:
             - name: FAKE_PIX_KEY
               valueFrom:
